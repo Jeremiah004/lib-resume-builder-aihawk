@@ -1,0 +1,182 @@
+/*Modern Minimal $https://github.com/cloyola*/
+:root {
+    --primary-color: #2c3e50;
+    --secondary-color: #3498db;
+    --text-color: #2c3e50;
+    --light-gray: #ecf0f1;
+    --white: #ffffff;
+    --font-main: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-heading: 'Poppins', sans-serif;
+  }
+  
+  body {
+    font-family: var(--font-main);
+    line-height: 1.6;
+    color: var(--text-color);
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+    background: var(--white);
+  }
+  
+  header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--light-gray);
+  }
+  
+  h1 {
+    font-family: var(--font-heading);
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin: 0;
+    letter-spacing: -0.5px;
+  }
+  
+  .contact-info {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    font-size: 0.9rem;
+    color: var(--text-color);
+  }
+  
+  .contact-info p {
+    margin: 0;
+  }
+  
+  .contact-info a {
+    color: var(--text-color);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .fab,
+  .fas {
+    margin-right: 3px;
+  }
+  
+  span {
+    font-weight: normal;
+    color: var(--secondary-color);
+    margin: 0.5rem 0;
+    font-size: 1.25rem;
+  }
+  
+  h2 {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    border-bottom: 1px solid var(--light-gray);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+    text-align: left;
+  }
+  
+  .entry {
+    margin-bottom: 1.5rem;
+  }
+  
+  .entry-header {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--primary-color);
+  }
+  
+  .entry-details {
+    display: flex;
+    justify-content: space-between;
+    font-style: italic;
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+    color: #666;
+  }
+  
+  .compact-list {
+    margin: 0.5rem 0;
+    padding-left: 15px;
+  }
+  
+  .compact-list li {
+    margin-bottom: 0.5rem;
+  }
+  
+  .two-column {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .two-column ul {
+    width: 48%;
+    margin: 0;
+    padding-left: 15px;
+  }
+  
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+  }
+  
+  .skill-item {
+    background: var(--light-gray);
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    text-align: center;
+  }
+  
+  a {
+    color: var(--text-color);
+    text-decoration: none;
+  }
+  
+  a:hover {
+    text-decoration: underline;
+  }
+  
+  @media print {
+    body {
+      padding: 0;
+      margin: 0;
+      background: white;
+    }
+  
+    @page {
+      margin: 0.5cm;
+    }
+  
+    h1 {
+      font-size: 2rem;
+    }
+  
+    h2 {
+      font-size: 1.3rem;
+      border-bottom: 1px solid #ddd;
+    }
+  
+    .contact-info {
+      font-size: 0.9rem;
+    }
+  
+    .entry-details {
+      font-size: 0.8rem;
+    }
+  
+    .compact-list {
+      padding-left: 12px;
+    }
+    
+    .skill-item {
+      border: 1px solid #ddd;
+      background: none;
+    }
+  }

@@ -1,0 +1,105 @@
+/* Modern Minimal Style$ResumeAI Team */
+/* A clean, professional style that emphasizes readability and structure */
+
+:root {
+    --primary-color: #4f46e5;
+    --text-color: #1f2937;
+    --secondary-text: #6b7280;
+    --background-color: #ffffff;
+    --section-spacing: 2rem;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    color: var(--text-color);
+    line-height: 1.6;
+    margin: 0;
+    padding: 2rem;
+    background-color: var(--background-color);
+}
+
+.resume {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: var(--section-spacing);
+}
+
+.name {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+}
+
+.contact-info {
+    color: var(--secondary-text);
+    font-size: 1rem;
+}
+
+.section {
+    margin-bottom: var(--section-spacing);
+}
+
+.section-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.experience-item, .education-item {
+    margin-bottom: 1.5rem;
+}
+
+.company, .institution {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.position, .degree {
+    color: var(--secondary-text);
+    font-size: 1rem;
+}
+
+.date {
+    color: var(--secondary-text);
+    font-size: 0.9rem;
+}
+
+.description {
+    margin-top: 0.5rem;
+}
+
+.skills-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.skill-tag {
+    background-color: #f3f4f6;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    color: var(--primary-color);
+}
+
+@media print {
+    body {
+        padding: 0;
+    }
+    
+    .resume {
+        max-width: none;
+    }
+    
+    .skill-tag {
+        border: 1px solid var(--primary-color);
+    }
+} 

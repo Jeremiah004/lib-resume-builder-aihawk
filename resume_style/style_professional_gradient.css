@@ -1,0 +1,187 @@
+/* Professional-Gradient $https://github.com/yourusername/resume-builder */
+
+:root {
+    --gradient-primary: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    --gradient-secondary: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    --text-primary: #1f2937;
+    --text-secondary: #4b5563;
+    --bg-light: #f9fafb;
+    --white: #ffffff;
+    --font-main: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-heading: 'Playfair Display', serif;
+}
+
+body {
+    font-family: var(--font-main);
+    color: var(--text-primary);
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background: var(--white);
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2.5rem;
+    background: var(--white);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+    background: var(--gradient-primary);
+    color: var(--white);
+    padding: 2rem;
+    margin: -2.5rem -2.5rem 2rem -2.5rem;
+    position: relative;
+}
+
+.header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--gradient-secondary);
+}
+
+.name {
+    font-family: var(--font-heading);
+    font-size: 3rem;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -1px;
+}
+
+.title {
+    font-size: 1.5rem;
+    opacity: 0.9;
+    margin: 0.5rem 0;
+}
+
+.contact-info {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+    font-size: 0.95rem;
+}
+
+.contact-info a {
+    color: var(--white);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    opacity: 0.9;
+    transition: opacity 0.2s;
+}
+
+.contact-info a:hover {
+    opacity: 1;
+}
+
+.section {
+    margin-bottom: 2.5rem;
+}
+
+.section-title {
+    font-family: var(--font-heading);
+    font-size: 1.75rem;
+    color: var(--text-primary);
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--gradient-primary);
+    display: inline-block;
+}
+
+.experience-item, .education-item {
+    margin-bottom: 2rem;
+    padding-left: 1.5rem;
+    border-left: 3px solid var(--gradient-secondary);
+}
+
+.experience-title, .education-title {
+    font-weight: 600;
+    font-size: 1.2rem;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.company, .institution {
+    color: var(--text-secondary);
+    font-weight: 500;
+    font-size: 1.1rem;
+}
+
+.date {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin: 0.25rem 0;
+}
+
+.description {
+    margin: 0.75rem 0;
+    color: var(--text-secondary);
+}
+
+.skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+}
+
+.skill-item {
+    background: var(--bg-light);
+    padding: 0.75rem 1.25rem;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    text-align: center;
+    border: 1px solid rgba(99, 102, 241, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.skill-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+@media print {
+    body {
+        background: white;
+    }
+    
+    .container {
+        padding: 0;
+        box-shadow: none;
+    }
+    
+    .header {
+        background: var(--text-primary);
+        margin: 0;
+        padding: 1.5rem;
+    }
+    
+    .header::after {
+        display: none;
+    }
+    
+    .section-title {
+        border-bottom: 1px solid var(--text-primary);
+    }
+    
+    .experience-item, .education-item {
+        border-left: 1px solid var(--text-secondary);
+    }
+    
+    .skill-item {
+        border: 1px solid var(--text-secondary);
+        background: none;
+    }
+    
+    .skill-item:hover {
+        transform: none;
+        box-shadow: none;
+    }
+} 

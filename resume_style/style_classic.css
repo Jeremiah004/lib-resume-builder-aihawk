@@ -1,0 +1,221 @@
+ /* Classic Resume Style */
+:root {
+    --primary-color: #000000;
+    --secondary-color: #333333;
+    --text-color: #444444;
+    --background-color: #ffffff;
+    --accent-color: #666666;
+    --border-color: #cccccc;
+}
+
+body {
+    font-family: 'Times New Roman', serif;
+    color: var(--text-color);
+    line-height: 1.5;
+    background-color: var(--background-color);
+    margin: 0;
+    padding: 2rem;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: white;
+    padding: 2rem;
+    border: 1px solid var(--border-color);
+}
+
+/* Header Section */
+.header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--primary-color);
+}
+
+.header h1 {
+    font-size: 2.5rem;
+    margin: 0 0 1rem 0;
+    font-weight: bold;
+    color: var(--primary-color);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.contact-info {
+    font-style: italic;
+    margin-top: 0.5rem;
+    line-height: 1.6;
+}
+
+.contact-info span {
+    display: inline-block;
+    margin: 0 1rem;
+}
+
+/* Section Styles */
+.section {
+    margin-bottom: 2rem;
+}
+
+.section-title {
+    color: var(--primary-color);
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
+}
+
+/* Education & Experience */
+.entry {
+    margin-bottom: 1.5rem;
+}
+
+.entry-header {
+    margin-bottom: 0.5rem;
+}
+
+.entry-title {
+    font-weight: bold;
+    color: var(--primary-color);
+    margin: 0;
+    font-size: 1.1rem;
+    display: inline;
+}
+
+.entry-date {
+    float: right;
+    color: var(--accent-color);
+    font-style: italic;
+}
+
+.entry-subtitle {
+    font-style: italic;
+    color: var(--secondary-color);
+    margin: 0.25rem 0;
+}
+
+.entry-content {
+    margin-top: 0.5rem;
+}
+
+/* Skills Section */
+.skills {
+    columns: 2;
+    column-gap: 2rem;
+}
+
+.skill-category {
+    break-inside: avoid;
+    margin-bottom: 1rem;
+}
+
+.skill-category h4 {
+    color: var(--primary-color);
+    margin: 0 0 0.5rem 0;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.skill-list {
+    list-style: none;
+    padding-left: 1rem;
+    margin: 0;
+}
+
+.skill-list li {
+    margin-bottom: 0.25rem;
+    position: relative;
+}
+
+.skill-list li::before {
+    content: '•';
+    position: absolute;
+    left: -1rem;
+    color: var(--accent-color);
+}
+
+/* Projects & Achievements */
+.project {
+    margin-bottom: 1rem;
+}
+
+.project h4 {
+    color: var(--primary-color);
+    margin: 0 0 0.5rem 0;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.project-description {
+    margin: 0;
+    text-align: justify;
+}
+
+/* Links */
+a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Print Styles */
+@media print {
+    body {
+        padding: 0;
+    }
+
+    .container {
+        border: none;
+        padding: 0;
+    }
+
+    a {
+        text-decoration: none;
+    }
+
+    .header {
+        border-bottom-width: 1px;
+    }
+
+    .section-title {
+        border-bottom-width: 0.5px;
+    }
+}
+
+/* Clear fix for entry dates */
+.entry-header::after {
+    content: '';
+    display: table;
+    clear: both;
+}
+
+/* Additional Classic Elements */
+.section::before {
+    content: '';
+    display: block;
+    clear: both;
+}
+
+.entry ul {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+}
+
+.entry ul li {
+    margin-bottom: 0.25rem;
+}
+
+blockquote {
+    margin: 1rem 0;
+    padding-left: 1rem;
+    border-left: 3px solid var(--border-color);
+    font-style: italic;
+    color: var(--accent-color);
+}
