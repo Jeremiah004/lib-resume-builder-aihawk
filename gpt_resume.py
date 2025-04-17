@@ -251,7 +251,7 @@ class LLMResumer:
             )
         )
         self.strings = strings
-        self.resume_object = resume_object or Resume()
+        self.job_description = None
 
     def extract_resume_info(self, pdf_text: str) -> dict:
         """
@@ -269,67 +269,77 @@ class LLMResumer:
             Extract the following information from the resume text and format it as a YAML structure.
             Return ONLY the YAML content without any markdown formatting or code block markers.
             
-            Follow this exact structure:
+            IMPORTANT: Do NOT use phrases like "Not provided", "Not specified", "N/A", or leave any field empty.
+            Always provide actual content for each field using information from the resume or reasonable defaults.
             
-            personal_info:
-              name: "John"
-              surname: "Doe"
-              date_of_birth: "1990-01-01"
-              country: "USA"
-              city: "New York"
-              address: "123 Main St"
-              phone_prefix: "+1"
-              phone: "555-1234"
-              email: "john@example.com"
-              github: "github.com/johndoe"
-              linkedin: "linkedin.com/in/johndoe"
+            Follow this exact structure and ensure all fields are completely filled with valid values:
+            
+            personal_information:
+            name: "John"
+            surname: "Doe"
+            date_of_birth: "1990-01-01"  # Use format YYYY-MM-DD or DD/MM/YYYY consistently
+            country: "USA"
+            city: "New York"
+            address: "123 Main St"
+            phone_prefix: "+1"
+            phone: "555-1234"
+            email: "john@example.com"
+            github: "https://github.com/johndoe"  # Must be full URL with https://
+            linkedin: "https://linkedin.com/in/johndoe"  # Must be full URL with https://
             
             education_details:
-              - education_level: "Bachelor's"
+            - education_level: "Bachelor's"
                 institution: "University of Example"
                 field_of_study: "Computer Science"
                 final_evaluation_grade: "3.8"
                 start_date: "2010"
-                year_of_completion: "2014"
+                year_of_completion: "2014"  # Must be a valid integer year or string representation
                 exam:
-                  "Data Structures": "A"
-                  "Algorithms": "A-"
+                "Data Structures": "A"
+                "Algorithms": "A-"
             
             experience_details:
-              - role: "Software Engineer"
+            - position: "Software Engineer"
                 company: "Tech Corp"
-                duration: "2014-2018"
+                employment_period: "2014-2018"
                 location: "San Francisco"
+                industry: "Technology"  # Industry field is required
                 description: "Developed web applications and led team of 5 developers"
                 skills_acquired:
-                  - "Python"
-                  - "JavaScript"
+                - "Python"
+                - "JavaScript"
             
             projects:
-              - name: "Project A"
+            - name: "Project A"
                 description: "Description of project A"
-                link: "github.com/johndoe/project-a"
+                link: "https://github.com/johndoe/project-a"  # Must be full URL with https://
             
             achievements:
-              - name: "Best Employee 2017"
+            - name: "Best Employee 2017"
                 description: "Awarded for outstanding performance"
             
             certifications:
-              - name: "AWS Certified Developer"
+            - name: "AWS Certified Developer"
                 description: "Completed in 2018"
             
             languages:
-              - language: "English"
+            - language: "English"
                 proficiency: "Native"
             
             interests:
-              - "Programming"
-              - "Reading"
+            - "Programming"
+            - "Reading"
             
             Resume Text:
             {pdf_text}
             
-            Return only the YAML structure, no additional text or explanations.
+            Return only the YAML structure starting from personal information to interests in that order, no additional text or explanations.
+            If any information is not found, Do Not Use Not Provided or Empty Value, use defaults:
+            - For URLs, use proper https:// format
+            - For dates of birth, use YYYY-MM-DD format
+            - For years, use valid integer values like 2020
+            - Always include industry field for experience
+            remember, do not produce Not Provided
             """
             
             # Create a prompt template
@@ -344,18 +354,6 @@ class LLMResumer:
             # Clean the response
             yaml_str = yaml_str.replace('```yml', '').replace('```yaml', '').replace('```', '').strip()
             
-            # Remove any non-YAML content after the last valid YAML entry
-            last_valid_line = None
-            for line in yaml_str.split('\n'):
-                if line.strip() and not line.startswith('Resume Text'):
-                    last_valid_line = line
-            if last_valid_line:
-                yaml_str = yaml_str[:yaml_str.rindex(last_valid_line) + len(last_valid_line)]
-            
-            # Fix common YAML formatting issues
-            yaml_str = yaml_str.replace('- role:', '\n  - role:')  # Fix experience details formatting
-            yaml_str = yaml_str.replace('- description:', '\n    - description:')  # Fix key responsibilities formatting
-            
             try:
                 # Parse the YAML
                 resume_data = yaml.safe_load(yaml_str)
@@ -366,9 +364,6 @@ class LLMResumer:
             
             # Validate and clean the data
             cleaned_data = self._clean_resume_data(resume_data)
-            
-            # Set the resume object using model_validate
-            self.resume_object = Resume.model_validate(cleaned_data)
             
             return cleaned_data
             
@@ -389,89 +384,124 @@ class LLMResumer:
         cleaned_data = {}
         
         # Clean personal information
-        if 'personal_info' in data:
-            # Handle empty URLs with default values
-            github = data['personal_info'].get('github', '')
-            linkedin = data['personal_info'].get('linkedin', '')
+        if 'personal_information' in data:
+            pi = data['personal_information']
+            
+            # Ensure required fields exist
+            if 'date_of_birth' not in pi or not pi['date_of_birth'] or pi['date_of_birth'].lower() in ['not provided', 'not specified']:
+                pi['date_of_birth'] = "1990-01-01"  # Default date
+                
+            # Handle URL fields
+            github = pi.get('github', '')
+            linkedin = pi.get('linkedin', '')
             
             # Validate and correct GitHub URL
-            if not github or github.lower() in ['not available', 'not specified', 'https://not specified']:
+            if not github or not isinstance(github, str) or github.lower() in ['not available', 'not specified', 'not provided']:
                 github = "https://github.com/placeholder"
             elif not github.startswith(('http://', 'https://')):
-                github = f"https://github.com/{github}"
+                github = f"https://github.com/{github.strip('/').split('/')[-1]}"
             
             # Validate and correct LinkedIn URL
-            if not linkedin or linkedin.lower() in ['not available', 'not specified', 'https://not specified']:
+            if not linkedin or not isinstance(linkedin, str) or linkedin.lower() in ['not available', 'not specified', 'not provided']:
                 linkedin = "https://linkedin.com/in/placeholder"
             elif not linkedin.startswith(('http://', 'https://')):
-                linkedin = f"https://linkedin.com/in/{linkedin}"
+                linkedin = f"https://linkedin.com/in/{linkedin.strip('/').split('/')[-1]}"
             
-            # Ensure all strings are properly formatted
-            cleaned_data['personal_info'] = {
-                'name': str(data['personal_info'].get('name', '')),
-                'surname': str(data['personal_info'].get('surname', '')),
-                'date_of_birth': str(data['personal_info'].get('date_of_birth', '')),
-                'country': str(data['personal_info'].get('country', '')),
-                'city': str(data['personal_info'].get('city', '')),
-                'address': str(data['personal_info'].get('address', '')),
-                'phone_prefix': str(data['personal_info'].get('phone_prefix', '')),
-                'phone': str(data['personal_info'].get('phone', '')),
-                'email': str(data['personal_info'].get('email', '')),
+            # Update with cleaned data
+            cleaned_data['personal_information'] = {
+                'name': str(pi.get('name', 'John')),
+                'surname': str(pi.get('surname', 'Doe')),
+                'date_of_birth': str(pi.get('date_of_birth', '1990-01-01')),
+                'country': str(pi.get('country', '')),
+                'city': str(pi.get('city', '')),
+                'address': str(pi.get('address', '')),
+                'phone_prefix': str(pi.get('phone_prefix', '')),
+                'phone': str(pi.get('phone', '')),
+                'email': str(pi.get('email', '')),
                 'github': github,
                 'linkedin': linkedin
             }
         
         # Clean education details
-        if 'education_details' in data:
-            cleaned_data['education_details'] = []
+        cleaned_data['education_details'] = []
+        if 'education_details' in data and isinstance(data['education_details'], list):
             for edu in data['education_details']:
-                # Handle year_of_completion
-                year = edu.get('year_of_completion', '')
+                # Ensure year_of_completion is an integer or valid integer string
+                year_of_completion = edu.get('year_of_completion', '2020')
+                if not year_of_completion or year_of_completion in ['Not provided', 'not specified']:
+                    year_of_completion = '2020'  # Default year
+                
+                # Try to ensure the year is a valid string that could be an integer
                 try:
-                    year = int(year) if year else 0
+                    int(year_of_completion)  # Just to test if it's valid
                 except (ValueError, TypeError):
-                    year = 0
+                    year_of_completion = '2020'  # Default if invalid
                 
-                # Handle exam field - ensure it's a dictionary
-                exam = edu.get('exam', {})
-                if not isinstance(exam, dict) or not exam:
-                    exam = {}
-                
+                # Ensure exam dictionary exists
+                exam_dict = edu.get('exam', {})
+                if not isinstance(exam_dict, dict):
+                    exam_dict = {}
+                    
                 cleaned_edu = {
                     'education_level': str(edu.get('education_level', '')),
                     'institution': str(edu.get('institution', '')),
                     'field_of_study': str(edu.get('field_of_study', '')),
                     'final_evaluation_grade': str(edu.get('final_evaluation_grade', '')),
                     'start_date': str(edu.get('start_date', '')),
-                    'year_of_completion': year,
-                    'exam': exam
+                    'year_of_completion': year_of_completion,
+                    'exam': exam_dict
                 }
                 cleaned_data['education_details'].append(cleaned_edu)
         
         # Clean experience details
-        if 'experience_details' in data:
-            cleaned_data['experience_details'] = []
+        cleaned_data['experience_details'] = []
+        if 'experience_details' in data and isinstance(data['experience_details'], list):
             for exp in data['experience_details']:
+                # Ensure industry field exists
+                industry = exp.get('industry', '')
+                if not industry:
+                    # Try to infer industry from company or position
+                    company = exp.get('company', '').lower()
+                    position = exp.get('position', '').lower()
+                    
+                    if any(tech in company or tech in position for tech in ['tech', 'software', 'it', 'computer']):
+                        industry = 'Technology'
+                    elif any(fin in company or fin in position for fin in ['finance', 'bank', 'invest']):
+                        industry = 'Finance'
+                    elif any(edu in company or edu in position for edu in ['education', 'university', 'school']):
+                        industry = 'Education'
+                    else:
+                        industry = 'Business Services'  # Default industry
+                
+                # Handle skills acquired
+                skills = exp.get('skills_acquired', [])
+                if not isinstance(skills, list):
+                    if isinstance(skills, str):
+                        skills = [skill.strip() for skill in skills.split(',') if skill.strip()]
+                    else:
+                        skills = []
+                
                 cleaned_exp = {
-                    'role': str(exp.get('role', '')),
+                    'position': str(exp.get('position', '')),
                     'company': str(exp.get('company', '')),
-                    'duration': str(exp.get('duration', '')),
+                    'employment_period': str(exp.get('employment_period', '')),
                     'location': str(exp.get('location', '')),
+                    'industry': str(industry),
                     'description': str(exp.get('description', '')),
-                    'skills_acquired': exp.get('skills_acquired', [])
+                    'skills_acquired': skills
                 }
                 cleaned_data['experience_details'].append(cleaned_exp)
         
         # Clean projects
-        if 'projects' in data:
-            cleaned_data['projects'] = []
+        cleaned_data['projects'] = []
+        if 'projects' in data and isinstance(data['projects'], list):
             for proj in data['projects']:
-                # Handle empty project links
+                # Clean and validate link
                 link = proj.get('link', '')
-                if not link or link.lower() in ['not specified', 'not available']:
-                    link = "https://github.com/placeholder/project"
+                if not link or not isinstance(link, str) or link.lower() in ['not available', 'not specified', 'not provided']:
+                    link = f"https://github.com/placeholder/{proj.get('name', 'project').lower().replace(' ', '-')}"
                 elif not link.startswith(('http://', 'https://')):
-                    link = f"https://github.com/{link}"
+                    link = f"https://github.com/{link.strip('/').split('/')[-1]}"
                 
                 cleaned_proj = {
                     'name': str(proj.get('name', '')),
@@ -480,89 +510,33 @@ class LLMResumer:
                 }
                 cleaned_data['projects'].append(cleaned_proj)
         
-        # Clean achievements
-        if 'achievements' in data:
-            cleaned_data['achievements'] = []
-            for ach in data['achievements']:
-                cleaned_ach = {
-                    'name': str(ach.get('name', '')),
-                    'description': str(ach.get('description', ''))
-                }
-                cleaned_data['achievements'].append(cleaned_ach)
-        
-        # Clean certifications
-        if 'certifications' in data:
-            cleaned_data['certifications'] = []
-            for cert in data['certifications']:
-                cleaned_cert = {
-                    'name': str(cert.get('name', '')),
-                    'description': str(cert.get('description', ''))
-                }
-                cleaned_data['certifications'].append(cleaned_cert)
-        
-        # Clean languages
-        if 'languages' in data:
-            cleaned_data['languages'] = []
-            for lang in data['languages']:
-                cleaned_lang = {
-                    'language': str(lang.get('language', '')),
-                    'proficiency': str(lang.get('proficiency', ''))
-                }
-                cleaned_data['languages'].append(cleaned_lang)
-        
-        # Clean interests
-        if 'interests' in data:
-            cleaned_data['interests'] = [str(interest) for interest in data['interests']]
+        # Copy remaining sections with minimal cleaning
+        for section in ['achievements', 'certifications', 'languages', 'interests']:
+            if section in data:
+                cleaned_data[section] = data[section]
         
         return cleaned_data
+    
 
     @staticmethod
     def _preprocess_template_string(template: str) -> str:
         # Preprocess a template string to remove unnecessary indentation.
         return textwrap.dedent(template)
+    
 
-    def set_resume(self, resume_object, job_description=None):
-        """Set the resume object and optionally a job description.
-        
-        Args:
-            resume_object: The resume object to use
-            job_description (str, optional): A job description to tailor the resume to
-        """
-        try:
-            if not resume_object:
-                raise ValueError("Resume object cannot be None")
-            self.resume_object = resume_object
-            self.job_description = job_description
-        except Exception as e:
-            logging.error(f"Error in set_resume: {str(e)}")
-            raise
+    def set_resume(self, resume):
+        self.resume = resume
 
     def generate_header(self) -> str:
-        try:
-            print(self.resume_object.personal_info)
-            print(self.resume_object.personal_info.name if self.resume_object.personal_info else "No name")
-
-            if not self.resume_object.personal_info or not self.resume_object:
-                logging.error("Personal information or job description not provided")
-                return ""
-            logging.debug(f"Starting header generation with personal_info: {self.resume_object.personal_info}")
-            logging.debug(f"Using template: {self.strings.prompt_header}")
-        
-            header_prompt_template = self._preprocess_template_string(
-                self.strings.prompt_header
-            )
-            
-            logging.debug(f"Preprocessed template: {header_prompt_template}")
-            prompt = ChatPromptTemplate.from_template(header_prompt_template)
-            chain = prompt | self.llm_cheap | StrOutputParser()
-            output = chain.invoke({
-                "personal_info": self.resume_object.personal_info
-            })
-            logging.debug(f"Generated header: {output}")
-            return output
-        except Exception as e:
-            logging.error(f"Error in generate_header: {str(e)}", exc_info=True)
-            return ""
+        header_prompt_template = self._preprocess_template_string(
+            self.strings.prompt_header
+        )
+        prompt = ChatPromptTemplate.from_template(header_prompt_template)
+        chain = prompt | self.llm_cheap | StrOutputParser()
+        output = chain.invoke({
+            "personal_information": self.resume.personal_information
+        })
+        return output
 
     def generate_education_section(self) -> str:
         education_prompt_template = self._preprocess_template_string(
@@ -571,7 +545,7 @@ class LLMResumer:
         prompt = ChatPromptTemplate.from_template(education_prompt_template)
         chain = prompt | self.llm_cheap | StrOutputParser()
         output = chain.invoke({
-            "education_details": self.resume_object.education_details,
+            "education_details": self.resume.education_details,
         })
         return output
 
@@ -582,7 +556,7 @@ class LLMResumer:
         prompt = ChatPromptTemplate.from_template(work_experience_prompt_template)
         chain = prompt | self.llm_cheap | StrOutputParser()
         output = chain.invoke({
-            "experience_details": self.resume_object.experience_details
+            "experience_details": self.resume.experience_details
         })
         return output
 
@@ -593,7 +567,7 @@ class LLMResumer:
         prompt = ChatPromptTemplate.from_template(side_projects_prompt_template)
         chain = prompt | self.llm_cheap | StrOutputParser()
         output = chain.invoke({
-            "projects": self.resume_object.projects
+            "projects": self.resume.projects
         })
         return output
 
@@ -612,9 +586,8 @@ class LLMResumer:
         logging.debug(f"Chain created: {chain}")
 
         input_data = {
-            "achievements": self.resume_object.achievements,
-            "certifications": self.resume_object.certifications,
-            "job_description": self.job_description
+            "achievements": self.resume.achievements,
+            "certifications": self.resume.certifications,
         }
         logging.debug(f"Input data for the chain: {input_data}")
 
@@ -639,7 +612,7 @@ class LLMResumer:
         logging.debug(f"Chain created: {chain}")
 
         input_data = {
-            "certifications": self.resume_object.certifications,
+            "certifications": self.resume.certifications,
             "job_description": self.job_description
         }
         logging.debug(f"Input data for the chain: {input_data}")
@@ -659,21 +632,21 @@ class LLMResumer:
         
         skills = set()
 
-        if self.resume_object.experience_details:
-            for exp in self.resume_object.experience_details:
+        if self.resume.experience_details:
+            for exp in self.resume.experience_details:
                 if exp.skills_acquired:
                     skills.update(exp.skills_acquired)
 
-        if self.resume_object.education_details:
-            for edu in self.resume_object.education_details:
+        if self.resume.education_details:
+            for edu in self.resume.education_details:
                 if edu.exam:
                     for exam in edu.exam:
                         skills.update(exam.keys())
         prompt = ChatPromptTemplate.from_template(additional_skills_prompt_template)
         chain = prompt | self.llm_cheap | StrOutputParser()
         output = chain.invoke({
-            "languages": self.resume_object.languages,
-            "interests": self.resume_object.interests,
+            "languages": self.resume.languages,
+            "interests": self.resume.interests,
             "skills": skills,
         })
         
@@ -682,38 +655,38 @@ class LLMResumer:
     def generate_html_resume(self) -> str:
         # Define a list of functions to execute in parallel
         def header_fn():
-            if self.resume_object.personal_info:
+            if self.resume.personal_information:
                 return self.generate_header()
             return ""
 
         def education_fn():
-            if self.resume_object.education_details:
+            if self.resume.education_details:
                 return self.generate_education_section()
             return ""
 
         def work_experience_fn():
-            if self.resume_object.experience_details:
+            if self.resume.experience_details:
                 return self.generate_work_experience_section()
             return ""
 
         def side_projects_fn():
-            if self.resume_object.projects:
+            if self.resume.projects:
                 return self.generate_side_projects_section()
             return ""
 
         def achievements_fn():
-            if self.resume_object.achievements:
+            if self.resume.achievements:
                 return self.generate_achievements_section()
             return ""
         
         def certifications_fn():
-            if self.resume_object.certifications:
+            if self.resume.certifications:
                 return self.generate_certifications_section()
             return ""
 
         def additional_skills_fn():
-            if (self.resume_object.experience_details or self.resume_object.education_details or
-                self.resume_object.languages or self.resume_object.interests):
+            if (self.resume.experience_details or self.resume.education_details or
+                self.resume.languages or self.resume.interests):
                 return self.generate_additional_skills_section()
             return ""
 

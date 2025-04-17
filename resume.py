@@ -1,44 +1,33 @@
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional, Union
 import yaml
-from pydantic import BaseModel, EmailStr, HttpUrl, Field, validator, field_validator
+from pydantic import BaseModel, EmailStr, HttpUrl, Field
 
 
 
-class PersonalInfo(BaseModel):
-    """Personal information model."""
-    name: Optional[str] = None
-    surname: Optional[str] = None
-    date_of_birth: Optional[str] = None
-    country: Optional[str] = None
-    city: Optional[str] = None
-    address: Optional[str] = None
-    phone_prefix: Optional[str] = None
-    phone: Optional[str] = None
-    email: Optional[str] = None
-    github: Optional[str] = None
-    linkedin: Optional[str] = None
-
-    @field_validator('github', 'linkedin')
-    @classmethod
-    def validate_urls(cls, v: Optional[str]) -> str:
-        """Validate URL fields."""
-        if not v or v.lower() in ['not available', 'not specified', 'https://not specified']:
-            return "https://placeholder.com"
-        if not v.startswith(('http://', 'https://')):
-            return f"https://{v}"
-        return v
+class PersonalInformation(BaseModel):
+    name: Optional[str]
+    surname: Optional[str]
+    date_of_birth: Optional[str]
+    country: Optional[str]
+    city: Optional[str]
+    address: Optional[str]
+    zip_code: Optional[str] = Field(None, min_length=5, max_length=10)
+    phone_prefix: Optional[str]
+    phone: Optional[str]
+    email: Optional[EmailStr]
+    github: Optional[HttpUrl] = None
+    linkedin: Optional[HttpUrl] = None
 
 
-class EducationDetail(BaseModel):
-    """Education detail model."""
-    education_level: Optional[str] = None
-    institution: Optional[str] = None
-    field_of_study: Optional[str] = None
-    final_evaluation_grade: Optional[str] = None
-    start_date: Optional[str] = None
-    year_of_completion: Optional[int] = None
-    exam: Optional[Dict[str, str]] = None
+class EducationDetails(BaseModel):
+    education_level: Optional[str]
+    institution: Optional[str]
+    field_of_study: Optional[str]
+    final_evaluation_grade: Optional[str]
+    start_date: Optional[str]
+    year_of_completion: Optional[int]
+    exam: Optional[Union[List[Dict[str, str]], Dict[str, str]]] = None
 
     @field_validator('exam')
     @classmethod
@@ -46,14 +35,13 @@ class EducationDetail(BaseModel):
         """Validate exam field."""
         return v if v is not None else {}
 
-
-class ExperienceDetail(BaseModel):
-    """Experience detail model."""
-    role: Optional[str] = None
-    company: Optional[str] = None
-    duration: Optional[str] = None
-    location: Optional[str] = None
-    description: Optional[str] = None
+class ExperienceDetails(BaseModel):
+    position: Optional[str]
+    company: Optional[str]
+    employment_period: Optional[str]
+    location: Optional[str]
+    industry: Optional[str]
+    key_responsibilities: Optional[List[Dict[str, str]]] = None
     skills_acquired: Optional[List[str]] = None
 
     @field_validator('skills_acquired')
@@ -70,38 +58,24 @@ class ExperienceDetail(BaseModel):
 
 
 class Project(BaseModel):
-    """Project model."""
-    name: Optional[str] = None
-    description: Optional[str] = None
-    link: Optional[str] = None
-
-    @field_validator('link')
-    @classmethod
-    def validate_link(cls, v: Optional[str]) -> str:
-        """Validate link field."""
-        if not v or v.lower() in ['not available', 'not specified']:
-            return "https://github.com/placeholder/project"
-        if not v.startswith(('http://', 'https://')):
-            return f"https://github.com/{v}"
-        return v
+    name: Optional[str]
+    description: Optional[str]
+    link: Optional[HttpUrl] = None
 
 
 class Achievement(BaseModel):
-    """Achievement model."""
-    name: Optional[str] = None
-    description: Optional[str] = None
+    name: Optional[str]
+    description: Optional[str]
 
 
-class Certification(BaseModel):
-    """Certification model."""
-    name: Optional[str] = None
-    description: Optional[str] = None
+class Certifications(BaseModel):
+    name: Optional[str]
+    description: Optional[str]
 
 
 class Language(BaseModel):
-    """Language model."""
-    language: Optional[str] = None
-    proficiency: Optional[str] = None
+    language: Optional[str]
+    proficiency: Optional[str]
 
 
 class Availability(BaseModel):
@@ -132,27 +106,14 @@ class LegalAuthorization(BaseModel):
 
 
 class Resume(BaseModel):
-    """Resume model."""
-    personal_info: Optional[PersonalInfo] = None
-    education_details: List[EducationDetail] = Field(default_factory=list)
-    experience_details: List[ExperienceDetail] = Field(default_factory=list)
-    projects: List[Project] = Field(default_factory=list)
-    achievements: List[Achievement] = Field(default_factory=list)
-    certifications: List[Certification] = Field(default_factory=list)
-    languages: List[Language] = Field(default_factory=list)
-    interests: List[str] = Field(default_factory=list)
-
-    @field_validator('personal_info')
-    @classmethod
-    def validate_personal_info(cls, v: Optional[PersonalInfo]) -> PersonalInfo:
-        """Validate personal_info field."""
-        return v if v is not None else PersonalInfo()
-
-    @field_validator('education_details', 'experience_details', 'projects', 'achievements', 'certifications', 'languages', 'interests')
-    @classmethod
-    def validate_lists(cls, v: Optional[List[Any]]) -> List[Any]:
-        """Validate list fields."""
-        return v if v is not None else []
+    personal_information: Optional[PersonalInformation]
+    education_details: Optional[List[EducationDetails]] = None
+    experience_details: Optional[List[ExperienceDetails]] = None
+    projects: Optional[List[Project]] = None
+    achievements: Optional[List[Achievement]] = None
+    certifications: Optional[List[Certifications]] = None
+    languages: Optional[List[Language]] = None
+    interests: Optional[List[str]] = None
 
     @staticmethod
     def normalize_exam_format(exam):
@@ -167,27 +128,18 @@ class Resume(BaseModel):
                     exam_dict.update(entry)
             return exam_dict
         if isinstance(exam, dict):
-            return exam
-        return {}
+        return exam
 
-    def __init__(self, yaml_str: str = None, **data):
-        """Initialize Resume model."""
+    def __init__(self, yaml_str: str):
         try:
-            # Parse the YAML string if provided
-            if yaml_str:
-                data = yaml.safe_load(yaml_str)
+            # Parse the YAML string
+            data = yaml.safe_load(yaml_str)
 
             # Clean up exam data in education details
             if 'education_details' in data:
-                for edu in data['education_details']:
-                    if 'exam' in edu:
-                        edu['exam'] = self.normalize_exam_format(edu['exam'])
-
-            # Clean up skills_acquired in experience details
-            if 'experience_details' in data:
-                for exp in data['experience_details']:
-                    if 'skills_acquired' in exp:
-                        exp['skills_acquired'] = [skill if skill is not None else "" for skill in exp.get('skills_acquired', [])]
+                for ed in data['education_details']:
+                    if 'exam' in ed:
+                        ed['exam'] = self.normalize_exam_format(ed['exam'])
 
             # Create an instance of Resume from the parsed data
             super().__init__(**data)
