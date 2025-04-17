@@ -9,7 +9,7 @@ import webbrowser
 
 class FacadeManager:
     def __init__(self, groq_api_key, style_manager, resume_generator, resume_object, log_path):
-        # Get the absolute path of the library directory
+        # Keep your existing initialization code
         lib_directory = Path(__file__).resolve().parent
         global_config.STRINGS_MODULE_RESUME_PATH = lib_directory / "resume_prompt" / "strings_feder-cr.py"
         global_config.STRINGS_MODULE_RESUME_JOB_DESCRIPTION_PATH = lib_directory / "resume_job_description_prompt" / "strings_feder-cr.py"
@@ -24,49 +24,30 @@ class FacadeManager:
         self.resume_object = resume_object
         self.log_path = log_path
         self.selected_style = None  # Property to store the selected style
-
-    def prompt_user(self, choices: list[str], message: str) -> str:
-        questions = [
-            inquirer.List('selection', message=message, choices=choices),
-        ]
-        return inquirer.prompt(questions)['selection']
-
-    def prompt_for_url(self, message: str) -> str:
-        questions = [
-            inquirer.Text('url', message=message),
-        ]
-        return inquirer.prompt(questions)['url']
-
-    def prompt_for_text(self, message: str) -> str:
-        questions = [
-            inquirer.Text('text', message=message),
-        ]
-        return inquirer.prompt(questions)['text']
-
-    def choose_style(self):
+    
+    # Remove or comment out the inquirer-based methods since they won't be used
+    
+    def set_style(self, style_name):
+        """Set the style by name directly, without interactive prompting"""
         styles = self.style_manager.get_styles()
         if not styles:
-            print("No styles available")
-            return None
-        final_style_choice = "Create your resume style in CSS"
-        formatted_choices = self.style_manager.format_choices(styles)
-        formatted_choices.append(final_style_choice)
-        selected_choice = self.prompt_user(formatted_choices, "Which style would you like to adopt?")
-        if selected_choice == final_style_choice:
-            tutorial_url = "https://github.com/feder-cr/lib_resume_builder_AIHawk/blob/main/how_to_contribute/web_designer.md"
-            print("\nOpening tutorial in your browser...")
-            webbrowser.open(tutorial_url)
-            exit()
-        else:
-            self.selected_style = selected_choice.split(' (')[0]
-
-
-    def pdf_base64(self, job_description_url=None, job_description_text=None):
+            raise ValueError("No styles available")
+        
+        if style_name not in styles:
+            available_styles = list(styles.keys())
+            raise ValueError(f"Style '{style_name}' not found. Available styles: {available_styles}")
+        
+        self.selected_style = style_name
+        return True
+    
+    def generate_pdf(self, job_description_url=None, job_description_text=None):
+        """Generate PDF with the selected style and return as base64"""
+        # This is based on your existing pdf_base64 method
         if (job_description_url is not None and job_description_text is not None):
-            raise ValueError("Esattamente uno tra 'job_description_url' o 'job_description_text' deve essere fornito.")
+            raise ValueError("Only one of 'job_description_url' or 'job_description_text' should be provided.")
         
         if self.selected_style is None:
-            raise ValueError("Devi scegliere uno stile prima di generare il PDF.")
+            raise ValueError("You must choose a style before generating the PDF.")
         
         style_path = self.style_manager.get_style_path(self.selected_style)
         temp_html_path = None
